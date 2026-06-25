@@ -4,21 +4,25 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "Priyanshu Singh",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
+    "@langchain/classic": "^1.0.38",
     "@langchain/core": "^1.2.1",
     "@langchain/google-genai": "^2.2.0",
+    "@langchain/textsplitters": "^1.0.1",
     "chromadb": "^3.4.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "langchain": "^1.5.2",
     "multer": "^2.2.0",
+    "nodemon": "^3.1.14",
     "pdf-parse": "^2.4.5"
   }
 }

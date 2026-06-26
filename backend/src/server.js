@@ -35,6 +35,11 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 
     const result = await parser.getText();
 
+    const cleanText = result.text
+  .replace(/--\s*\d+\s*of\s*\d+\s*--/g, "")  // remove page markers
+  .replace(/\n{3,}/g, "\n\n")                  // collapse excessive newlines
+  .trim();
+
     await parser.destroy();
 
     const splitter = new RecursiveCharacterTextSplitter({
@@ -42,21 +47,19 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       chunkOverlap: 200,
     });
 
-    const chunks = await splitter.createDocuments([result.text]);
+    const chunks = await splitter.createDocuments([cleanText]);
+
 
     const embeddings = new GoogleGenerativeAIEmbeddings({
       model: "gemini-embedding-001",
       apiKey: process.env.GOOGLE_API_KEY,
     });
 
+
+
     vectorStore = await MemoryVectorStore.fromDocuments(chunks, embeddings);
 
-    const results = await vectorStore.similaritySearch(
-      "What is this document about?",
-      4,
-    );
-
-    console.log(results);
+    // console.log(vectorStore.memoryVectors[20]);
 
     res.json({
       success: true,
@@ -73,23 +76,37 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
-    console.log("Vector Store:", vectorStore);
+  // console.log("Vector Store:", vectorStore);
   try {
     const { question } = req.body;
 
-    const docs = await vectorStore.similaritySearch(question, 4);
+    // console.log("Question:", question);
+
+    const docs = await vectorStore.similaritySearch(question, 8);
+
+    // console.log("Retrieved Docs:", docs);
 
     const context = docs.map((doc) => doc.pageContent).join("\n\n");
 
+    // console.log("Context:", context);
+
     const prompt = `
-Answer the question using ONLY the provided context.
+        You are a helpful PDF assistant.
 
-Context:
-${context}
+        Use ONLY the provided context to answer.
 
-Question:
-${question}
-`;
+        If the answer cannot be found in the context, reply:
+
+        "I could not find that information in the document."
+
+        Context:
+        ${context}
+
+        Question:
+        ${question}
+
+        Answer:
+        `;
 
     const response = await llm.invoke(prompt);
 

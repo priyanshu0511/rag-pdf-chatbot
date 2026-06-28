@@ -7,10 +7,16 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import dotenv from "dotenv";
-
+import cors from "cors";
 dotenv.config();
 
+
+
 const app = express();
+
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
 app.use(express.json());
 
